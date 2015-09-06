@@ -24,7 +24,7 @@ _useFileCache=False
 _cacheFile=None
 _cacheExpiry=None
 
-def setFileCache( filename=None, expiryHours=6, useCache=True):
+def setCached( filename=None, expiryHours=6, useCache=True):
     global _useFileCache, _cacheFile, _cacheExpiry
     _useFileCache=useCache
     if filename is None:
@@ -32,7 +32,7 @@ def setFileCache( filename=None, expiryHours=6, useCache=True):
     _cacheFile=filename
     _cacheExpiry=expiryHours
 
-def getFromFileCache( code ):
+def _getFromFileCache( code ):
     if not  _useFileCache:
         return None
     if not os.path.exists(_cacheFile):
@@ -53,7 +53,7 @@ def getFromFileCache( code ):
         pass
     return stndata
 
-def saveToFileCache( code, stndata ):
+def _saveToFileCache( code, stndata ):
     if not _useFileCache:
         return
     try:
@@ -95,10 +95,10 @@ def get( code, cache=True ):
     else:
         url=_gdburl.replace('{code}',code)
         try:
-            stndata=getFromFileCache(code)
+            stndata=_getFromFileCache(code)
             if stndata is None:
                 stndata=urllib2.urlopen(url).read()
-                saveToFileCache(code,stndata)
+                _saveToFileCache(code,stndata)
             stn=json.loads(stndata,object_hook=_json_object_hook)
         except Exception as e:
             raise RuntimeError("Cannot connect to geodetic database: "+e.message)
