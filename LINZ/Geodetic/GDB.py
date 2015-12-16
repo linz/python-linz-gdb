@@ -14,8 +14,6 @@ from collections import namedtuple
 Module to access information from the LINZ geodetic database.
 '''
 
-
-
 _cache={}
 _gdburl='http://www.linz.govt.nz/gdb?mode=js&code={code}'
 
@@ -43,7 +41,7 @@ def _getFromFileCache( code ):
         conn=sqlite3.connect(_cacheFile)
         c=conn.cursor()
         dateoffset='-'+str(_cacheExpiry)+' hours'
-        c.execute("delete from gdb_json where cachedate < date('now',?)",(dateoffset,))
+        c.execute("delete from gdb_json where cachedate < datetime('now',?)",(dateoffset,))
         c.execute("select json from gdb_json where code=?",(code.upper(),))
         for row in c:
             stndata=row[0]
@@ -69,7 +67,7 @@ def _saveToFileCache( code, stndata ):
              ''')
         c.execute('''
                   insert or replace into gdb_json(code,cachedate,json)
-                  values (?,date('now'),?)
+                  values (?,datetime('now'),?)
                   ''',
                   (code.upper(),stndata))
         conn.commit()
