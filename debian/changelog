@@ -1,3 +1,11 @@
+python-linz-gdb (1.1.0-1) trusty; urgency=medium
+
+  * Adding file cache to GDB module
+  * Fixing caching
+  * Fixing caching date/time
+
+ -- Chris Crook <ccrook@linz.govt.nz>  Mon, 21 Dec 2015 09:39:17 +1300
+
 python-linz-gdb (1.0.0-1) trusty; urgency=medium
 
   * Initial realease
