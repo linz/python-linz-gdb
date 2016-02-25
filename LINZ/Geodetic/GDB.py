@@ -23,6 +23,14 @@ _cacheFile=None
 _cacheExpiry=None
 
 def setCached( filename=None, expiryHours=6, useCache=True):
+    '''
+    Initiate the use of an persistent file cache.  Subsequent requests
+    for station information may be filled from the cache, and will
+    be saved to the cache.  
+
+    The default cache is ~/.gdbjsoncache.  It is structured as an 
+    sqlite database.
+    '''
     global _useFileCache, _cacheFile, _cacheExpiry
     _useFileCache=useCache
     if filename is None:
@@ -83,11 +91,18 @@ def get( code, cache=True ):
     geodetic database 'mode=js' option.
 
     If cache is True then retrieved marks are saved - if the same mark is requested
-    again then it is retrieved from the cache.
+    again then it is retrieved from the cache.  If GDB.setCached has been called
+    or if cache == "file" then a persistent file cache is used.
     '''
     if not re.match(r'^\w{4}$',code):
         raise ValueError(code+' is not a valid geodetic code')
     code=code.upper()
+    if cache == file:
+        global _useFileCache
+        if not _useFileCache:
+            setCached()
+        cache=True
+
     if cache and code in _cache:
         stn=_cache[code]
     else:
