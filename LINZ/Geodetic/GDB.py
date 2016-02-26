@@ -22,7 +22,7 @@ _useFileCache=False
 _cacheFile=None
 _cacheExpiry=None
 
-def setCached( filename=None, expiryHours=6, useCache=True):
+def setCached( filename=None, expiryHours=6, useCache=True, purge=False):
     '''
     Initiate the use of an persistent file cache.  Subsequent requests
     for station information may be filled from the cache, and will
@@ -30,6 +30,13 @@ def setCached( filename=None, expiryHours=6, useCache=True):
 
     The default cache is ~/.gdbjsoncache.  It is structured as an 
     sqlite database.
+
+    expiryHours is the maximum age that cached data will be used (though 
+    older data may be used if it cannot be retrieved)
+
+    useCache can be used to cancel using the cache (set to False)
+
+    purge if set will purge old data from the cache
     '''
     global _useFileCache, _cacheFile, _cacheExpiry
     _useFileCache=useCache
@@ -37,27 +44,42 @@ def setCached( filename=None, expiryHours=6, useCache=True):
         filename=os.path.join(os.path.expanduser("~"),_defaultFileCache)
     _cacheFile=filename
     _cacheExpiry=expiryHours
+    if purge:
+        try:
+            import sqlite3
+            conn=sqlite3.connect(_cacheFile)
+            c=conn.cursor()
+            dateoffset='-'+str(_cacheExpiry)+' hours'
+            c.execute("delete from gdb_json where cachedate < datetime('now',?)",(dateoffset,))
+            conn.commit()
+        except:
+            pass
 
-def _getFromFileCache( code ):
+def _getFromFileCache( code, haveConnection=False, useExpired=False ):
     if not  _useFileCache:
         return None
     if not os.path.exists(_cacheFile):
         return None
     stndata=None
+    iscurrent=False
     try:
         import sqlite3
         conn=sqlite3.connect(_cacheFile)
         c=conn.cursor()
         dateoffset='-'+str(_cacheExpiry)+' hours'
-        c.execute("delete from gdb_json where cachedate < datetime('now',?)",(dateoffset,))
-        c.execute("select json from gdb_json where code=?",(code.upper(),))
+        c.execute(""" select 
+                    json, 
+                    CASE WHEN cachedate >= datetime('now',?) THEN 'Y' else 'N' END as iscurrent 
+                  from gdb_json where code=?""",
+                  (dateoffset,code.upper()))
         for row in c:
+            iscurrent=row[1] == 'Y'
             stndata=row[0]
             break
         conn.commit()
     except:
         pass
-    return stndata
+    return stndata, iscurrent
 
 def _saveToFileCache( code, stndata ):
     if not _useFileCache:
@@ -91,13 +113,14 @@ def get( code, cache=True ):
     geodetic database 'mode=js' option.
 
     If cache is True then retrieved marks are saved - if the same mark is requested
-    again then it is retrieved from the cache.  If GDB.setCached has been called
-    or if cache == "file" then a persistent file cache is used.
+    again then it is retrieved from the cache.  
+    
+    If GDB.setCached has been called or if cache == "file" then a persistent file cache is used.
     '''
     if not re.match(r'^\w{4}$',code):
         raise ValueError(code+' is not a valid geodetic code')
     code=code.upper()
-    if cache == file:
+    if cache == 'file':
         global _useFileCache
         if not _useFileCache:
             setCached()
@@ -107,14 +130,17 @@ def get( code, cache=True ):
         stn=_cache[code]
     else:
         url=_gdburl.replace('{code}',code)
+        stndata=None
         try:
-            stndata=_getFromFileCache(code)
-            if stndata is None:
+            stndata, iscurrent=_getFromFileCache(code)
+            if stndata is None or not iscurrent:
                 stndata=urllib2.urlopen(url).read()
                 _saveToFileCache(code,stndata)
-            stn=json.loads(stndata,object_hook=_json_object_hook)
         except Exception as e:
-            raise RuntimeError("Cannot connect to geodetic database: "+e.message)
+            if stndata is None:
+                raise RuntimeError("Cannot connect to geodetic database: "+e.message)
+        if stndata is not None:
+            stn=json.loads(stndata,object_hook=_json_object_hook)
         if cache:
             _cache[code]=stn
     if stn is None:
