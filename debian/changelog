@@ -1,3 +1,9 @@
+python-linz-gdb (1.2.1-1) trusty; urgency=medium
+
+  * Fixing missing return values
+
+ -- Chris Crook <ccrook@linz.govt.nz>  Tue, 02 Aug 2016 08:51:29 +1200
+
 python-linz-gdb (1.2.0-1) trusty; urgency=medium
 
   * Documentation and facilitating use of file cache
