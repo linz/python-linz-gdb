@@ -57,9 +57,9 @@ def setCached( filename=None, expiryHours=6, useCache=True, purge=False):
 
 def _getFromFileCache( code, haveConnection=False, useExpired=False ):
     if not  _useFileCache:
-        return None
+        return None, False
     if not os.path.exists(_cacheFile):
-        return None
+        return None, False
     stndata=None
     iscurrent=False
     try:
