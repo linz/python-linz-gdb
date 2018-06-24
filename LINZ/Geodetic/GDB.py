@@ -134,7 +134,17 @@ def get( code, cache=True ):
         try:
             stndata, iscurrent=_getFromFileCache(code)
             if stndata is None or not iscurrent:
-                stndata=urllib2.urlopen(url).read()
+                params={}
+                # To handle pre 2.7.9 python versions...
+                try:
+                    import ssl
+                    context=ssl.create_default_context()
+                    context.check_hostname=False
+                    context.verify_mode=ssl.CERT_NONE
+                    params['context']=context
+                except:
+                    pass
+                stndata=urllib2.urlopen(url,**params).read()
                 _saveToFileCache(code,stndata)
         except Exception as e:
             if stndata is None:
