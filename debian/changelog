@@ -1,3 +1,9 @@
+python-linz-gdb (1.5.0-1) xenial; urgency=medium
+
+  * Bypassing ssh checking for python post 2.7.9
+
+ -- Chris Crook <ccrook@linz.govt.nz>  Mon, 25 Jun 2018 09:43:27 +1200
+
 python-linz-gdb (1.4.0-1) xenial; urgency=medium
 
   * Refactoring mark image code
