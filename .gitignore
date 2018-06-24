@@ -3,6 +3,6 @@ build
 dist
 linz_gdb.egg-info
 debian/python-linz*
-debian/debhelper.log
+debian/debhelper*
 debian/substvars
 debian/files
