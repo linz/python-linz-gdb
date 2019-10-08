@@ -15,7 +15,7 @@ Module to access information from the LINZ geodetic database.
 '''
 
 _cache={}
-_gdburl='http://www.linz.govt.nz/gdb?mode=js&code={code}'
+_gdburl='https://www.geodesy.linz.govt.nz/api/gdbweb/mark?code={code}'
 
 _defaultFileCache=".gdbjsoncache"
 _useFileCache=False
@@ -104,7 +104,10 @@ def _saveToFileCache( code, stndata ):
     except:
         pass
 
-def _json_object_hook(d): return namedtuple('X',d.keys())(*d.values())
+def _json_object_hook(d): 
+    keys=[k for k in d.keys() if not k.startswith('_')]
+    values=[d[k] for k in keys]
+    return namedtuple('anon',keys)(*values)
 
 def get( code, cache=True ):
     '''
