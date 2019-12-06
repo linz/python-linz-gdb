@@ -17,6 +17,7 @@ Module to access information from the LINZ geodetic database.
 _cache={}
 _gdburl='https://www.geodesy.linz.govt.nz/api/gdbweb/mark?code={code}'
 
+_database=None
 _defaultFileCache=".gdbjsoncache"
 _useFileCache=False
 _cacheFile=None
@@ -54,6 +55,25 @@ def setCached( filename=None, expiryHours=6, useCache=True, purge=False):
             conn.commit()
         except:
             pass
+
+def setDatabase( host=None, database='linz_db', user=None, password=None ):
+    global _database
+    if _database is not None:
+        _database.disconnect()
+        _database=None
+    import psycopg2
+    try:
+        settings={'database':database }
+        if host is not None:
+            settings['host']=host
+        if user is not None:
+            settings['user']=user
+        if password is not None:
+            settings['password']=password
+        _database=psycopg2.connect( **settings )
+    except:
+        raise
+        raise RuntimeError('Database unavailable')
 
 def _getFromFileCache( code, haveConnection=False, useExpired=False ):
     if not  _useFileCache:
@@ -109,7 +129,10 @@ def _json_object_hook(d):
     values=[d[k] for k in keys]
     return namedtuple('anon',keys)(*values)
 
-def get( code, cache=True ):
+def getMarkId( id=None, cache=True ):
+    return get('id:{0}'.format(id), cache)
+
+def get( code=None, cache=True ):
     '''
     Retrieve information for a geodetic mark. The data is retrieved as an anonymous 
     class (constructed with named tuple) which is built from the JSON returned by the
@@ -120,37 +143,51 @@ def get( code, cache=True ):
     
     If GDB.setCached has been called or if cache == "file" then a persistent file cache is used.
     '''
-    if not re.match(r'^\w{4}$',code):
-        raise ValueError(code+' is not a valid geodetic code')
     code=code.upper()
+    if not re.match(r'^(\w{4}|ID\:\d+)$',code):
+        raise ValueError(code+' is not a valid geodetic code')
     if cache == 'file':
         global _useFileCache
         if not _useFileCache:
             setCached()
         cache=True
 
+    stn=None
     if cache and code in _cache:
         stn=_cache[code]
     else:
-        url=_gdburl.replace('{code}',code)
         stndata=None
         try:
             stndata, iscurrent=_getFromFileCache(code)
             if stndata is None or not iscurrent:
-                params={}
-                # To handle pre 2.7.9 python versions...
-                try:
-                    import ssl
-                    context=ssl.create_default_context()
-                    context.check_hostname=False
-                    context.verify_mode=ssl.CERT_NONE
-                    params['context']=context
-                except:
-                    pass
-                stndata=urllib2.urlopen(url,**params).read()
-                _saveToFileCache(code,stndata)
+                if _database is not None:
+                    type='VARCHAR'
+                    val=code
+                    if code.startswith('ID:'):
+                        type='INTEGER'
+                        val=code[3:]
+                    sql="SELECT gdb.gdb_mark_json(%s::{0},'F')::TEXT".format(type)
+                    c=_database.cursor()
+                    c.execute(sql,(val,))
+                    result=c.fetchone()
+                    if result is not None:
+                        stndata=result[0]
+                else:
+                    params={}
+                    # To handle pre 2.7.9 python versions...
+                    try:
+                        import ssl
+                        context=ssl.create_default_context()
+                        context.check_hostname=False
+                        context.verify_mode=ssl.CERT_NONE
+                        params['context']=context
+                    except:
+                        pass
+                    url=_gdburl.replace('{code}',code)
+                    stndata=urllib2.urlopen(url,**params).read()
+                    _saveToFileCache(code,stndata)
         except Exception as e:
-            if stndata is None:
+           if stndata is None:
                 raise RuntimeError("Cannot connect to geodetic database: "+e.message)
         if stndata is not None:
             stn=json.loads(stndata,object_hook=_json_object_hook)
