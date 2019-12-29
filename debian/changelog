@@ -1,3 +1,9 @@
+python-linz-gdb (1.7.0-1) xenial; urgency=medium
+
+  * Adding support for sourcing mark data from Postgres
+
+ -- Chris Crook <ccrook@linz.govt.nz>  Mon, 30 Dec 2019 09:00:00 +1200
+
 python-linz-gdb (1.6.0-1) xenial; urgency=medium
 
   * Changing to support new database location and JSON format.  Note

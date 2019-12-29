@@ -11,7 +11,7 @@ import sys
 from collections import namedtuple
 
 '''
-Module to access information from the LINZ geodetic database.
+Module to access information about marks from the LINZ geodetic database.
 '''
 
 _cache={}
@@ -129,10 +129,10 @@ def _json_object_hook(d):
     values=[d[k] for k in keys]
     return namedtuple('anon',keys)(*values)
 
-def getMarkId( id=None, cache=True ):
+def getMarkId( id, cache=True ):
     return get('id:{0}'.format(id), cache)
 
-def get( code=None, cache=True ):
+def get( code, cache=True ):
     '''
     Retrieve information for a geodetic mark. The data is retrieved as an anonymous 
     class (constructed with named tuple) which is built from the JSON returned by the
