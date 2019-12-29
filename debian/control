@@ -1,12 +1,15 @@
-Source: python-linz-gdb
+Source: python3-linz-gdb
 Maintainer: Chris Crook <ccrook@linz.govt.nz>
 Section: python
-X-Python-Version: >= 2.6
+X-Python-Version: >= 3.5
 Priority: optional
-Build-Depends: python-setuptools (>= 0.6b3), python-all (>= 2.6.6-3), debhelper (>= 7.4.3)
+Build-Depends: 
+  python3-all,
+  python3-setuptools,
+  debhelper (>=9)
 Standards-Version: 3.9.1
 
-Package: python-linz-gdb
+Package: python3-linz-gdb
 Architecture: all
 Depends: ${misc:Depends}, ${python:Depends}
 Description: Python LINZ GDB

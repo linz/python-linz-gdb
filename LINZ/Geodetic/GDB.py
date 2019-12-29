@@ -1,9 +1,9 @@
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
 
-import urllib2
+
+
+
+
+import urllib.request, urllib.error, urllib.parse
 import os.path
 import json
 import re
@@ -125,7 +125,7 @@ def _saveToFileCache( code, stndata ):
         pass
 
 def _json_object_hook(d): 
-    keys=[k for k in d.keys() if not k.startswith('_')]
+    keys=[k for k in list(d.keys()) if not k.startswith('_')]
     values=[d[k] for k in keys]
     return namedtuple('anon',keys)(*values)
 
@@ -184,7 +184,7 @@ def get( code, cache=True ):
                     except:
                         pass
                     url=_gdburl.replace('{code}',code)
-                    stndata=urllib2.urlopen(url,**params).read()
+                    stndata=urllib.request.urlopen(url,**params).read()
                     _saveToFileCache(code,stndata)
         except Exception as e:
            if stndata is None:
