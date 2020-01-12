@@ -11,6 +11,6 @@ Standards-Version: 3.9.1
 
 Package: python3-linz-gdb
 Architecture: all
-Depends: ${misc:Depends}, ${python:Depends}
+Depends: ${misc:Depends}, ${python3:Depends}
 Description: Python LINZ GDB
  Provides LINZ geodetic database access
