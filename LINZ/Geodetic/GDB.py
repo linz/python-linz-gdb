@@ -188,7 +188,7 @@ def get( code, cache=True ):
                     _saveToFileCache(code,stndata)
         except Exception as e:
            if stndata is None:
-                raise RuntimeError("Cannot connect to geodetic database: "+e.message)
+                raise RuntimeError("Cannot connect to geodetic database: "+str(e))
         if stndata is not None:
             stn=json.loads(stndata,object_hook=_json_object_hook)
         if cache:
