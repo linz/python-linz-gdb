@@ -1,8 +1,3 @@
-
-
-
-
-
 import urllib.request, urllib.error, urllib.parse
 import os.path
 import json
@@ -56,7 +51,7 @@ def setCached( filename=None, expiryHours=6, useCache=True, purge=False):
         except:
             pass
 
-def setDatabase( host=None, database='linz_db', user=None, password=None ):
+def setDatabase( host=None, database='linz_db', user=None, password=None, port=None ):
     global _database
     if _database is not None:
         _database.disconnect()
@@ -66,6 +61,8 @@ def setDatabase( host=None, database='linz_db', user=None, password=None ):
         settings={'database':database }
         if host is not None:
             settings['host']=host
+        if port is not None:
+            settings['port']=port
         if user is not None:
             settings['user']=user
         if password is not None:
