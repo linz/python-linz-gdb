@@ -129,7 +129,7 @@ def _json_object_hook(d):
 def getMarkId( id, cache=True ):
     return get('id:{0}'.format(id), cache)
 
-def get( code, cache=True ):
+def get( code, cache=True, asdict=False ):
     '''
     Retrieve information for a geodetic mark. The data is retrieved as an anonymous 
     class (constructed with named tuple) which is built from the JSON returned by the
@@ -187,7 +187,7 @@ def get( code, cache=True ):
            if stndata is None:
                 raise RuntimeError("Cannot connect to geodetic database: "+str(e))
         if stndata is not None:
-            stn=json.loads(stndata,object_hook=_json_object_hook)
+            stn=json.loads(stndata,object_hook=None if asdict else _json_object_hook)
         if cache:
             _cache[code]=stn
     if stn is None:
